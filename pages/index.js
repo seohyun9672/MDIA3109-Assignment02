@@ -7,52 +7,61 @@ import Card from "../comp/Card";
 import { useRouter } from "next/router";
 import Recipe from "./recipes";
 
-export default function Home() {
-  const [recipes, setRecipes] = useState();
-  const [header, setHeader] = useState("Popular");
 
+
+export default function Home() {
+  const [recipes, setRecipes] = useState([]);
+  const [header, setHeader] = useState("Popular");
+  
   let popularRecipes = [];
   const router = useRouter();
-  const data = "http://localhost:3000/data/recipes.json";
-
+  
   useEffect(() => {
+    fetchData();
     getPopularRecipes();
   }, []);
-
-
-  axios.defaults.baseURL = '/data';
-
-  axios.get('/recipes.json')
-    .then(response => console.log(response.data))
-    .catch(error => console.error(error));
-
+  
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/data/recipes.json', {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        },
+      });
+      const responseData = response.data;
+      console.log(responseData);
+      // do something with the data
+  
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
   const getPopularRecipes = async () => {
-    const result = await axios.get(data);
+    const result = await axios.get('http://localhost:3000/data/recipes.json');
     const recipes = await result.data;
-
-    for (var i = 0; i < recipes.length; i++) {
+  
+    for (let i = 0; i < recipes.length; i++) {
       if (recipes[i].rating > 4.9) {
         popularRecipes.push(recipes[i]);
       }
     }
-
+  
     let mostPopular = popularRecipes
       .sort(() => Math.random() - Math.random())
       .slice(0, 10);
     setRecipes(mostPopular);
   };
-
+  
   const sortRecipes = async (categoryName) => {
-    const result = await axios.get(data);
+    const result = await axios.get('http://localhost:3000/data/recipes.json');
     const recipes = await result.data;
     const sortedRecipes = [];
-
-    if (categoryName === "Popular") {
-      getPopularRecipes();
-    }
     const recipeNames = new Set();
-
-    for (var i = 0; i < recipes.length; i++) {
+  
+    for (let i = 0; i < recipes.length; i++) {
       if (recipes[i].cuisine_path.includes(categoryName)) {
         const recipeName = recipes[i].recipe_name;
         if (!recipeNames.has(recipeName)) {
@@ -63,7 +72,6 @@ export default function Home() {
     }
     setRecipes(sortedRecipes);
   };
-
   const handleCardClick = (id) => {
     router.push({
       pathname: "/recipes",
