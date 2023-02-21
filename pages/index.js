@@ -19,6 +19,13 @@ export default function Home() {
     getPopularRecipes();
   }, []);
 
+
+  axios.defaults.baseURL = '/data';
+
+  axios.get('/recipes.json')
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error));
+
   const getPopularRecipes = async () => {
     const result = await axios.get(data);
     const recipes = await result.data;
