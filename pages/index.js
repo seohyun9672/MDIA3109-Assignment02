@@ -5,64 +5,60 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Card from "../comp/Card";
 import { useRouter } from "next/router";
-import Recipe from "./recipes";
 
 export default function Home() {
-  const [recipes, setRecipes] = useState();
+  const [recipes, setRecipes] = useState([]);
   const [header, setHeader] = useState("Popular");
-
-  let popularRecipes = [];
   const router = useRouter();
-  const data = "http://localhost:3000/data/recipes.json";
 
-  useEffect(() => {
-    getPopularRecipes();
-  }, []);
-
-
-  axios.defaults.baseURL = '/data';
-
-  axios.get('/recipes.json')
-    .then(response => console.log(response.data))
-    .catch(error => console.error(error));
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/data/recipes.json", {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
+      const responseData = response.data;
+      return responseData;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const getPopularRecipes = async () => {
-    const result = await axios.get(data);
-    const recipes = await result.data;
-
-    for (var i = 0; i < recipes.length; i++) {
-      if (recipes[i].rating > 4.9) {
-        popularRecipes.push(recipes[i]);
-      }
-    }
-
-    let mostPopular = popularRecipes
-      .sort(() => Math.random() - Math.random())
-      .slice(0, 10);
+    const recipesData = await fetchData();
+    const popularRecipes = recipesData.filter((recipe) => recipe.rating > 4.9);
+    const mostPopular = popularRecipes.sort(() => Math.random() - Math.random()).slice(0, 10);
     setRecipes(mostPopular);
   };
 
   const sortRecipes = async (categoryName) => {
-    const result = await axios.get(data);
-    const recipes = await result.data;
-    const sortedRecipes = [];
-
-    if (categoryName === "Popular") {
-      getPopularRecipes();
-    }
+    const recipesData = await fetchData();
+    const sortedRecipes = recipesData.filter((recipe) => recipe.cuisine_path.includes(categoryName));
     const recipeNames = new Set();
 
-    for (var i = 0; i < recipes.length; i++) {
-      if (recipes[i].cuisine_path.includes(categoryName)) {
-        const recipeName = recipes[i].recipe_name;
-        if (!recipeNames.has(recipeName)) {
-          sortedRecipes.push(recipes[i]);
-          recipeNames.add(recipeName);
-        }
+    const uniqueRecipes = sortedRecipes.filter((recipe) => {
+      const recipeName = recipe.recipe_name;
+      if (!recipeNames.has(recipeName)) {
+        recipeNames.add(recipeName);
+        return true;
       }
-    }
-    setRecipes(sortedRecipes);
+      return false;
+    });
+
+    setRecipes(uniqueRecipes);
+    setHeader(categoryName);
   };
+
+  useEffect(() => {
+    if (header === "Popular") {
+      getPopularRecipes();
+    } else {
+      sortRecipes(header);
+    }
+  }, [header]);
 
   const handleCardClick = (id) => {
     router.push({
