@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import Card from "../comp/Card";
 import { useRouter } from "next/router";
 
+
+
 export default function Home() {
   const [recipes, setRecipes] = useState([]);
   const [header, setHeader] = useState("Popular");
@@ -33,7 +35,7 @@ export default function Home() {
     const mostPopular = popularRecipes.sort(() => Math.random() - Math.random()).slice(0, 10);
     setRecipes(mostPopular);
   };
-
+  
   const sortRecipes = async (categoryName) => {
     const recipesData = await fetchData();
     const sortedRecipes = recipesData.filter((recipe) => recipe.cuisine_path.includes(categoryName));
