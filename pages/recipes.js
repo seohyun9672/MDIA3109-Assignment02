@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import styles from "../styles/Recipes.module.css";
 import Head from "next/head";
 import Back from "../comp/Back";
 import List from "../comp/List";
 import { useRouter } from "next/router";
+import recipes from "../public/data/recipes.json";
 
 export default function Recipe() {
-  const [recipes, setRecipes] = useState();
   const [img, setImg] = useState("");
   const [description, setDescription] = useState([]);
   const [ingredients, setIngredients] = useState([]);
@@ -18,43 +17,19 @@ export default function Recipe() {
   const router = useRouter();
   const { id } = router.query;
 
-  const data = "http://localhost:3000/data/recipes.json";
-
   useEffect(() => {
-    console.log(id);
+    // console.log(id);
     if (id) {
-      getRecipeInfo(id);
-      getIngredients(id);
-      getDescriptions(id);
+      const recipe = recipes[id];
+      setTitle(recipe.recipe_name);
+      setImg(recipe.img_src);
+      setTime(recipe.total_time);
+      setRating(recipe.rating);
+      setServings(recipe.servings);
+      setIngredients(recipe.ingredients.split(", \n"));
+      setDescription(recipe.directions.split(/[:.]/));
     }
   }, [id]);
-
-  const getRecipeInfo = async (recipeId) => {
-    const result = await axios.get(data);
-    const recipes = await result.data;
-    setRecipes(recipes);
-    setTitle(recipes[recipeId].recipe_name);
-    setImg(recipes[recipeId].img_src);
-    setTime(recipes[recipeId].total_time);
-    setRating(recipes[recipeId].rating);
-    setServings(recipes[recipeId].servings);
-  };
-
-  const getIngredients = async (recipeId) => {
-    const result = await axios.get(data);
-    const recipes = await result.data;
-    const ingredients = recipes[recipeId].ingredients;
-    const split = ingredients.split(", \n");
-    setIngredients(split);
-  };
-
-  const getDescriptions = async (recipeId) => {
-    const result = await axios.get(data);
-    const recipes = await result.data;
-    const descriptions = recipes[recipeId].directions;
-    const split = descriptions.split(/[:.]/);
-    setDescription(split);
-  };
 
   var arr = [
     {
